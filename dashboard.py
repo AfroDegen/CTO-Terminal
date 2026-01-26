@@ -24,4 +24,4 @@ def get_current_slot():
         else:
             return f"Error: {response.get('error', 'Unknown')}"
     except Exception as e:
-        return f"RPC Error: {str(e)}
+        return f"RPC Error: {str(e)}"
