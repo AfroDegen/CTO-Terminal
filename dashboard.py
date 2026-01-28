@@ -87,7 +87,10 @@ st.set_page_config(
 )
 
 # Title & Branding
-st.title("CTO Terminal Live Dashboard 💻")
+st.markdown("<h1 style='text-align: center;'>CTO Terminal 💻</h1>", unsafe_allow_html=True)
+st.markdown("<div class='tagline'>We don’t chase pumps. We front run them.</div>", unsafe_allow_html=True)
+st.markdown("Real-time Solana monitoring for Comeback Token Opportunities (CTOs) | Building live for @pumpdotfun Pump Fund Hackathon")
+st.markdown("Follow progress: [@CTOTERMINAL](https://x.com/CTOTERMINAL)")
 st.markdown("**We don’t chase pumps. We front run them.**")
 st.markdown("Real-time Solana monitoring for Comeback Token Opportunities (CTOs) | Building live for @pumpdotfun Pump Fund Hackathon")
 
