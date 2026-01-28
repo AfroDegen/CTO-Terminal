@@ -2,17 +2,12 @@ import streamlit as st
 import requests
 from datetime import datetime
 
-from raydium import detect_raydium_activity
-
 # ---------------- CONFIG ----------------
-
 RPC_URL = "https://go.getblock.us/d794c3db8dea44308057d167c1003c9a"
 HEADERS = {"Content-Type": "application/json"}
-
 REFRESH_MS = 10_000  # 10 seconds
 
 # ---------------- RPC HELPERS ----------------
-
 def rpc_call(method, params=None):
     payload = {
         "jsonrpc": "2.0",
@@ -20,14 +15,14 @@ def rpc_call(method, params=None):
         "method": method,
         "params": params or []
     }
-    res = requests.post(RPC_URL, json=payload, headers=HEADERS, timeout=10)
-    res.raise_for_status()
-    return res.json()["result"]
+    r = requests.post(RPC_URL, json=payload, headers=HEADERS, timeout=10)
+    r.raise_for_status()
+    return r.json()["result"]
 
 def get_current_slot():
     return rpc_call("getSlot")
 
-def get_block(slot: int):
+def get_block(slot):
     return rpc_call(
         "getBlock",
         [
@@ -40,28 +35,39 @@ def get_block(slot: int):
         ]
     )
 
+# ---------------- RAYDIUM DETECTION ----------------
+RAYDIUM_PROGRAM = "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"
+
+def detect_raydium_activity(block):
+    events = []
+    if not block or "transactions" not in block:
+        return events
+
+    for tx in block["transactions"]:
+        message = tx["transaction"]["message"]
+        accounts = message.get("accountKeys", [])
+        if any(
+            acc.get("pubkey") == RAYDIUM_PROGRAM
+            for acc in accounts
+            if isinstance(acc, dict)
+        ):
+            events.append({
+                "signature": tx.get("transaction", {}).get("signatures", [""])[0]
+            })
+    return events
+
 # ---------------- UI ----------------
-
-st.set_page_config(
-    page_title="CTO Terminal 💻",
-    layout="wide"
-)
-
+st.set_page_config(page_title="CTO Terminal 💻", layout="wide")
 st.title("CTO Terminal 💻")
 st.caption("We don’t chase pumps. We front-run them.")
 
-# Auto refresh (SAFE way)
-st.autorefresh(interval=REFRESH_MS, key="ctorefresh")
+st.autorefresh(interval=REFRESH_MS, key="refresh")
 
-# Session state
 if "last_slot" not in st.session_state:
     st.session_state.last_slot = None
 
-# ---------------- DATA ----------------
-
 try:
     current_slot = get_current_slot()
-    block = None
     events = []
 
     if current_slot != st.session_state.last_slot:
@@ -72,38 +78,26 @@ try:
     now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
 except Exception as e:
-    st.error(f"RPC Error: {e}")
+    st.error(f"RPC error: {e}")
     st.stop()
 
 # ---------------- METRICS ----------------
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric("Status", "LIVE 🟢")
-
-with col2:
-    st.metric("Current Solana Slot", current_slot)
-
-with col3:
-    st.metric("Raydium TXs (This Slot)", len(events))
+c1, c2, c3 = st.columns(3)
+c1.metric("Status", "LIVE 🟢")
+c2.metric("Current Solana Slot", current_slot)
+c3.metric("Raydium TXs (Slot)", len(events))
 
 st.caption(f"Last update: {now}")
 
 # ---------------- DETAILS ----------------
-
-st.subheader("Raydium Activity (Live)")
+st.subheader("Raydium Activity (Confirmed)")
 
 if events:
-    st.success(f"⚡ {len(events)} Raydium transactions detected")
+    st.success(f"⚡ {len(events)} Raydium interaction(s)")
     for e in events[:5]:
-        st.markdown(f"- **Tx:** `{e.get('signature')}`")
-        mints = e.get("mints") or []
-        if mints:
-            st.caption("Mints: " + ", ".join(mints))
+        st.markdown(f"- `{e['signature']}`")
 else:
-    st.info("No Raydium activity detected in this slot")
+    st.info("No Raydium activity detected this slot")
 
 st.divider()
-
-st.caption("CTO Terminal V1 — live on-chain signal detection")
+st.caption("CTO Terminal V1 — real on-chain signals only")
