@@ -25,7 +25,59 @@ def get_current_slot():
             return f"Error: {response.get('error', 'Unknown')}"
     except Exception as e:
         return f"RPC Error: {str(e)}"  # FIXED: added closing quote here
+# Enhanced wide layout + favicon
+st.set_page_config(
+    page_title="CTO Terminal 💻",
+    page_icon="💻",
+    layout="wide",
+    initial_sidebar_state="expanded"  # Optional: shows sidebar if you add one later
+)
 
+# Custom CSS for neon/crypto look (add this block)
+st.markdown("""
+<style>
+    /* Hide Streamlit default footer and menu for cleaner dashboard */
+    footer {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+
+    /* Neon glow on titles and subheaders */
+    h1, h2, h3 {
+        color: #00D4FF !important;          /* Neon cyan */
+        text-shadow: 0 0 10px #00D4FF80;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* Better card-like containers for metrics and alerts */
+    div[data-testid="metric-container"] {
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 16px;
+        background-color: #111827;
+        box-shadow: 0 4px 12px rgba(0, 212, 255, 0.15);
+    }
+
+    /* Style the dataframe/alert table */
+    .stDataFrame {
+        border: 1px solid #334155;
+        border-radius: 12px;
+        background-color: #0F1624;
+    }
+
+    /* Overall spacing and background tweak */
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    /* Tagline emphasis */
+    .tagline {
+        font-size: 1.3rem;
+        color: #CBD5E1;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+</style>
+""", unsafe_allow_html=True)
 # Page setup
 st.set_page_config(
     page_title="CTO Terminal Dashboard",
