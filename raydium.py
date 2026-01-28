@@ -1,52 +1,47 @@
-import asyncio
-import json
-import websockets
-from collections import deque
-import time
+# raydium.py
 
-RAYDIUM_PROGRAM = "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"
-RPC_WSS = "wss://api.mainnet-beta.solana.com"
+RAYDIUM_PROGRAM_ID = "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"
 
-events = deque(maxlen=100)
+def detect_raydium_activity(block: dict):
+    """
+    Scans a Solana block for Raydium program interactions.
+    Returns a list of events with tx signature + token mints.
+    """
 
-async def listen():
-    while True:
+    events = []
+
+    if not block or "transactions" not in block:
+        return events
+
+    for tx in block["transactions"]:
         try:
-            async with websockets.connect(RPC_WSS, ping_interval=20) as ws:
-                sub = {
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": "logsSubscribe",
-                    "params": [
-                        {"mentions": [RAYDIUM_PROGRAM]},
-                        {"commitment": "confirmed"}
-                    ]
-                }
-                await ws.send(json.dumps(sub))
+            message = tx["transaction"]["message"]
+            meta = tx.get("meta", {})
+            account_keys = message.get("accountKeys", [])
 
-                while True:
-                    msg = await ws.recv()
-                    data = json.loads(msg)
+            # Check if Raydium program is involved
+            program_ids = [
+                acc["pubkey"] for acc in account_keys
+                if acc.get("pubkey")
+            ]
 
-                    if "params" not in data:
-                        continue
+            if RAYDIUM_PROGRAM_ID not in program_ids:
+                continue
 
-                    value = data["params"]["result"]["value"]
-                    logs = value.get("logs", [])
-                    sig = value.get("signature")
+            # Extract token mints from postTokenBalances
+            mints = []
+            for bal in meta.get("postTokenBalances", []):
+                mint = bal.get("mint")
+                if mint:
+                    mints.append(mint)
 
-                    for l in logs:
-                        if (
-                            "AddLiquidity" in l
-                            or "InitializePool" in l
-                            or "Deposit" in l
-                        ):
-                            events.appendleft({
-                                "signature": sig,
-                                "log": l,
-                                "ts": time.time()
-                            })
+            events.append({
+                "signature": tx["transaction"]["signatures"][0],
+                "mints": list(set(mints))
+            })
 
-        except Exception as e:
-            print("Raydium WS error:", e)
-            time.sleep(3)
+        except Exception:
+            # Never crash the dashboard because of one bad tx
+            continue
+
+    return events
