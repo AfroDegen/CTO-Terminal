@@ -25,6 +25,21 @@ def get_current_slot():
             return f"Error: {response.get('error', 'Unknown')}"
     except Exception as e:
         return f"RPC Error: {str(e)}"  # FIXED: added closing quote here
+import streamlit as st
+# ... other imports ...
+
+# Only ONE set_page_config – put this right here after imports
+st.set_page_config(
+    page_title="CTO Terminal 💻",
+    page_icon="💻",
+    layout="wide",                 # makes columns use full width
+    initial_sidebar_state="auto"
+)
+
+# Then your CSS block from earlier
+st.markdown(""" <style> ... your CSS ... </style> """, unsafe_allow_html=True)
+
+# Rest of your code...
 # Enhanced wide layout + favicon
 st.set_page_config(
     page_title="CTO Terminal 💻",
