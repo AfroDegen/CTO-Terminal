@@ -3,7 +3,7 @@ import requests
 import os
 import time
 
-# Load RPC URL from environment variable (set in Railway)
+# Load RPC URL from environment variable
 RPC_URL = os.getenv("SOLANA_RPC_URL")
 if not RPC_URL:
     st.error("SOLANA_RPC_URL environment variable is not set! Add it in Railway Settings > Variables.")
@@ -26,7 +26,7 @@ def get_current_slot():
     except Exception as e:
         return f"RPC Error: {str(e)}"
 
-# ── ONLY ONE set_page_config – MUST BE FIRST Streamlit command ──
+# ── MUST BE THE VERY FIRST Streamlit command ──
 st.set_page_config(
     page_title="CTO Terminal 💻",
     page_icon="💻",
@@ -34,7 +34,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for neon/crypto dashboard look
+# Custom CSS – fully closed, no placeholders
 st.markdown("""
 <style>
     /* Hide default footer/menu */
@@ -50,4 +50,18 @@ st.markdown("""
 
     /* Card-like metrics & containers */
     div[data-testid="metric-container"] {
-        border: 1px
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 16px;
+        background-color: #111827;
+        box-shadow: 0 4px 12px rgba(0, 212, 255, 0.15);
+    }
+
+    /* Dataframe styling */
+    .stDataFrame {
+        border: 1px solid #334155;
+        border-radius: 12px;
+        background-color: #0F1624;
+    }
+
+    /* Better spacing */
