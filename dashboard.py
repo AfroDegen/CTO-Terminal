@@ -3,30 +3,7 @@ import requests
 import os
 import time
 
-# Load RPC URL from environment variable
-RPC_URL = os.getenv("SOLANA_RPC_URL")
-if not RPC_URL:
-    st.error("SOLANA_RPC_URL environment variable is not set! Add it in Railway Settings > Variables.")
-    st.stop()
-
-# Function to get current Solana slot
-def get_current_slot():
-    payload = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "getSlot",
-        "params": []
-    }
-    try:
-        response = requests.post(RPC_URL, json=payload, timeout=10).json()
-        if "result" in response:
-            return response["result"]
-        else:
-            return f"Error: {response.get('error', 'Unknown')}"
-    except Exception as e:
-        return f"RPC Error: {str(e)}"
-
-# Must be the very first Streamlit command
+# --- INITIAL CONFIG (Must be first) ---
 st.set_page_config(
     page_title="CTO Terminal 💻",
     page_icon="💻",
@@ -34,21 +11,33 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS – fully closed triple quotes, no issues
+# --- ENVIRONMENT & RPC SETUP ---
+RPC_URL = os.getenv("SOLANA_RPC_URL")
+
+def get_current_slot():
+    if not RPC_URL:
+        return "RPC URL MISSING"
+    payload = {"jsonrpc": "2.0", "id": 1, "method": "getSlot", "params": []}
+    try:
+        response = requests.post(RPC_URL, json=payload, timeout=10).json()
+        return response.get("result", "Error")
+    except Exception as e:
+        return f"RPC Error"
+
+# --- CUSTOM CSS ---
 st.markdown("""
 <style>
-    /* Hide default footer/menu */
     footer {visibility: hidden;}
     #MainMenu {visibility: hidden;}
 
-    /* Neon glow on titles */
+    /* Neon glow and premium typography */
     h1, h2, h3 {
         color: #00D4FF !important;
         text-shadow: 0 0 10px #00D4FF80;
         font-family: 'Segoe UI', sans-serif;
     }
 
-    /* Card-like metrics & containers */
+    /* KPI Card styling */
     div[data-testid="metric-container"] {
         border: 1px solid #334155;
         border-radius: 12px;
@@ -57,68 +46,106 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(0, 212, 255, 0.15);
     }
 
-    /* Dataframe styling */
-    .stDataFrame {
-        border: 1px solid #334155;
-        border-radius: 12px;
-        background-color: #0F1624;
-    }
-
-    /* Better spacing */
-    .block-container {
-        padding-top: 2rem !important;
-        padding-bottom: 2rem !important;
-    }
-
-    /* Tagline style */
-    .tagline {
-        font-size: 1.3rem;
-        color: #CBD5E1;
+    /* Hero Banner Styling */
+    .hero-banner {
+        background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid #00D4FF;
+        border-radius: 15px;
+        padding: 25px;
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 25px;
     }
+
+    .alert-box {
+        background-color: #1e1b4b;
+        border-left: 5px solid #00D4FF;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+    }
+
+    .block-container { padding-top: 2rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# Title & Branding
-st.markdown("<h1 style='text-align: center;'>CTO Terminal 💻</h1>", unsafe_allow_html=True)
-st.markdown("<div class='tagline'>We don’t chase pumps. We front run them.</div>", unsafe_allow_html=True)
-st.markdown("Real-time Solana monitoring for Comeback Token Opportunities (CTOs) | Building live for @pumpdotfun Pump Fund Hackathon")
-st.markdown("Follow progress: [@CTOTERMINAL](https://x.com/CTOTERMINAL)")
+# --- UI COMPONENTS ---
+
+# 1. Hero Banner
+st.markdown(
+    """
+    <div class="hero-banner">
+        <h2 style='margin:0; color:#00D4FF;'>CTO Terminal – Front-Run Solana Comebacks</h2>
+        <p style='color:#CBD5E1; font-size:1.1rem;'>Real-time detection of liquidity injections, volume spikes & wallet clusters on pump.fun</p>
+        <code style='color:#00D4FF;'>V1 in development | Building live for @pumpdotfun Hackathon</code>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # Sidebar
 with st.sidebar:
     st.header("CTO Terminal")
-    st.markdown("V1 in development")
-    st.info("Monitoring pump.fun tokens for:\n- Sudden volume spikes\n- Liquidity injections\n- Early CTO signals")
-    st.markdown("Follow progress: [@CTOTERMINAL](https://x.com/CTOTERMINAL)")
+    st.info("Monitoring for:\n- Sudden volume spikes\n- Liquidity injections\n- Early CTO signals")
     refresh_rate = st.slider("Refresh interval (seconds)", 1, 30, 5)
+    st.markdown("---")
+    st.markdown("Follow progress: [@CTOTERMINAL](https://x.com/CTOTERMINAL)")
 
-# Main content
-st.subheader("Live Solana Network Stats")
+if not RPC_URL:
+    st.error("SOLANA_RPC_URL variable is not set in Railway Settings.")
+    st.stop()
+
+# --- MAIN LOOP ---
 placeholder = st.empty()
 
-# Auto-refresh loop
 while True:
     with placeholder.container():
         slot = get_current_slot()
-        st.metric(
-            label="Current Solana Slot",
-            value=slot if isinstance(slot, int) else slot,
-            delta=None,
-            help="Latest confirmed slot number from RPC"
+        
+        # 2. Upgrade Metrics to 3 Colorful Cards
+        kpi1, kpi2, kpi3 = st.columns(3)
+        with kpi1:
+            st.metric(label="Current Solana Slot", value=slot, help="Latest confirmed slot from RPC")
+        with kpi2:
+            st.metric(label="Refresh Rate", value=f"{refresh_rate}s", delta="Live", delta_color="normal")
+        with kpi3:
+            st.metric(label="Detected Signals", value="0", delta="Awaiting CTOs", delta_color="inverse")
+
+        # 3. Styled Alerts Section
+        st.subheader("Live Token Volume & CTO Alerts 🔥")
+        st.markdown(
+            """
+            <div class="alert-box">
+                <p style='margin:0; font-weight:bold; color:#00D4FF;'>System Status: Scanning pump.fun...</p>
+                <p style='margin:0; font-size:0.9rem; color:#94a3b8;'>
+                Tuning detection for liquidity adds, volume spikes (200%+), and fresh wallet clusters. 
+                First CTO will appear here with: Token mint | Spike % | Liq amount | Cluster count.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
-        st.subheader("Live Token Volume & CTO Alerts")
-        st.info("Volume spikes & liquidity detection coming soon... (V1 in progress)")
-
-        st.markdown("**Sample Token Monitoring** (demo)")
+        # Styled Dataframe
+        st.markdown("**Sample Monitoring (Demo Mode)**")
         sample_data = {
             "Token": ["EXAMPLE1", "EXAMPLE2"],
             "5min Volume": [45000, 12000],
             "Liq Added": [True, False],
             "CTO Score": ["High", "Medium"]
         }
-        st.dataframe(sample_data, use_container_width=True)
+        st.dataframe(
+            sample_data,
+            use_container_width=True,
+            column_config={
+                "Token": st.column_config.TextColumn("Token"),
+                "5min Volume": st.column_config.NumberColumn("Volume ($)", format="$%d"),
+                "Liq Added": st.column_config.CheckboxColumn("Liq Injected"),
+                "CTO Score": st.column_config.TextColumn("Score")
+            }
+        )
+        
+        # 4. Footer (Inside loop to keep it at the bottom during refresh)
+        st.markdown("---")
+        st.caption("CTO Terminal 💻 | Solo build from Ibadan 🇳🇬 | Follow @CTOTERMINAL for updates")
 
     time.sleep(refresh_rate)
