@@ -1,0 +1,15 @@
+[theme]
+base = "dark"                  # Inherit Streamlit's dark defaults
+primaryColor = "#00D4FF"       # Neon cyan/blue for accents (buttons, highlights, links)
+backgroundColor = "#0A0E17"    # Deep dark navy/black
+secondaryBackgroundColor = "#111827"  # Slightly lighter for cards/widgets
+textColor = "#E0E7FF"          # Light grayish-blue for readable text
+font = "sans serif"            # Or try "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" for modern look
+
+# Optional: Rounded corners for modern feel
+baseRadius = "medium"
+
+# Sidebar tweaks (if you add one later)
+[theme.sidebar]
+backgroundColor = "#0F1624"
+textColor = "#CBD5E1"
