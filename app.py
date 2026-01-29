@@ -61,7 +61,7 @@ st.set_page_config(page_title="CTO Terminal 💻", layout="wide")
 st.title("CTO Terminal 💻")
 st.caption("We don’t chase pumps. We front-run them.")
 
-st.autorefresh(interval=REFRESH_MS, key="refresh")
+
 
 if "last_slot" not in st.session_state:
     st.session_state.last_slot = None
@@ -101,3 +101,6 @@ else:
 
 st.divider()
 st.caption("CTO Terminal V1 — real on-chain signals only")
+import time
+time.sleep(10)
+st.experimental_rerun()
