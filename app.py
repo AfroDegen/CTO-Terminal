@@ -103,4 +103,4 @@ st.divider()
 st.caption("CTO Terminal V1 — real on-chain signals only")
 import time
 time.sleep(10)
-st.experimental_rerun()
+st.rerun()
